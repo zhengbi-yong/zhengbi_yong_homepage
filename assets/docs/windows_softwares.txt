@@ -1,0 +1,8 @@
+adams:multibody dynamics simulation:https://hexagon.com/products/product-groups/computer-aided-engineering-software/adams
+ansys:simulation:https://www.ansys.com/
+autocad:2d cad:https://www.autodesk.com/hk/products/autocad/overview
+bambu studio:3d print with bamboo printer:https://bambulab.cn/zh-cn/download/studio
+bambu suite:https://bambulab.cn/zh-cn/download/suite
+bitwarden:password manager:https://bitwarden.com/
+catia:3d curve and modeling:https://www.3ds.com/edu/education/students/solutions/catia-v5
+comsol:
