@@ -9,8 +9,89 @@ pub fn BlogPost(slug: String) -> Element {
     
     // 在组件挂载后初始化数学公式和 Mermaid 图表
     use_effect(move || {
-        // TODO: 调用 KaTeX 的 renderMathInElement
-        // TODO: 调用 Mermaid 的 init
+        #[cfg(target_arch = "wasm32")]
+        {
+            use web_sys::window;
+            if let Some(window) = window() {
+                if let Some(document) = window.document() {
+                    // 延迟执行，确保 DOM 已更新
+                    let js_code = r#"
+                        (function() {
+                            function initContent() {
+                                const article = document.querySelector('article');
+                                if (!article) {
+                                    setTimeout(initContent, 100);
+                                    return;
+                                }
+                                
+                                // 重新渲染数学公式
+                                if (typeof window.renderMath === 'function') {
+                                    try {
+                                        window.renderMath(article);
+                                    } catch (e) {
+                                        console.error('渲染数学公式失败:', e);
+                                    }
+                                }
+                                
+                                // 重新高亮代码块
+                                if (typeof window.highlightElement === 'function') {
+                                    try {
+                                        window.highlightElement(article);
+                                    } catch (e) {
+                                        console.error('高亮代码块失败:', e);
+                                    }
+                                } else if (typeof window.highlightAll === 'function') {
+                                    try {
+                                        window.highlightAll();
+                                    } catch (e) {
+                                        console.error('高亮代码块失败:', e);
+                                    }
+                                }
+                                
+                                // 重新渲染 Mermaid 图表
+                                if (typeof window.renderAllMermaid === 'function') {
+                                    try {
+                                        window.renderAllMermaid().catch(function(e) {
+                                            console.error('渲染 Mermaid 图表失败:', e);
+                                        });
+                                    } catch (e) {
+                                        console.error('调用 Mermaid 渲染失败:', e);
+                                    }
+                                }
+                            }
+                            
+                            // 多次尝试，确保内容已加载
+                            setTimeout(initContent, 100);
+                            setTimeout(initContent, 300);
+                            setTimeout(initContent, 500);
+                        })();
+                    "#;
+                    
+                    if let Ok(script) = document.create_element("script") {
+                        script.set_text_content(Some(js_code));
+                        if let Some(head) = document.head() {
+                            let _ = head.append_child(&script);
+                            // 延迟移除 script 标签
+                            let head_clone = head.clone();
+                            let script_clone = script.clone();
+                            let js_cleanup = r#"
+                                setTimeout(function() {
+                                    const head = document.head;
+                                    const script = arguments[0];
+                                    if (script && head) {
+                                        head.removeChild(script);
+                                    }
+                                }, 300);
+                            "#;
+                            if let Ok(cleanup_script) = document.create_element("script") {
+                                cleanup_script.set_text_content(Some(js_cleanup));
+                                let _ = head.append_child(&cleanup_script);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     });
     
     rsx! {
