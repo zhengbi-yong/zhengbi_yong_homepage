@@ -1,18 +1,63 @@
 use dioxus::prelude::*;
 use crate::routes::Route;
+use crate::content::{render_markdown, parse_markdown_content, BLOGS_DIR};
 
 /// 文章详情页组件
 #[component]
 pub fn BlogPost(slug: String) -> Element {
-    // TODO: 使用 use_context 根据 slug 获取文章
-    // 暂时显示占位内容
+    println!("BlogPost rendered for slug: {}", slug);
     
-    // 在组件挂载后初始化数学公式和 Mermaid 图表
+    // 使用 signal 管理 HTML 内容，确保 Dioxus VDOM 与真实 DOM 保持同步
+    let mut html_content = use_signal(|| String::new());
+    let mut post_title = use_signal(|| "加载中...".to_string());
+    let mut post_date = use_signal(|| "".to_string());
+    let mut post_tags = use_signal(|| Vec::<String>::new());
+
+    // 模拟异步加载文章内容
     use_effect(move || {
+        // 在嵌入的博客目录中查找匹配 slug 的文件
+        let found_file = BLOGS_DIR.files().find(|file| {
+            file.path()
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .map(|s| s.contains(&slug) || slug == "math-test" && s == "math-test") 
+                .unwrap_or(false)
+        });
+
+        if let Some(file) = found_file {
+            if let Some(content_str) = file.contents_utf8() {
+                if let Ok(post) = parse_markdown_content(content_str) {
+                    post_title.set(post.metadata.title.clone());
+                    if let Some(date) = post.metadata.date {
+                        post_date.set(date.format("%Y-%m-%d").to_string());
+                    }
+                    if let Some(tags) = post.metadata.tags {
+                        post_tags.set(tags);
+                    }
+                    
+                    // 渲染 Markdown 内容
+                    let rendered = render_markdown(&post.content);
+                    html_content.set(rendered);
+                    return;
+                }
+            }
+        }
+        
+        html_content.set(format!("<h1>文章未找到</h1><p>无法找到与 '{}' 匹配的文章。</p>", slug));
+    });
+
+    // 监听内容变化，触发 JS 渲染
+    // 这里只负责 Math/Highlight
+    use_effect(move || {
+        if html_content.read().is_empty() {
+            return;
+        }
+        
         #[cfg(target_arch = "wasm32")]
         {
             use web_sys::window;
             if let Some(window) = window() {
+                web_sys::console::log_1(&"Content updated, triggering Math/Highlight init".into());
                 if let Some(document) = window.document() {
                     // 延迟执行，确保 DOM 已更新
                     let js_code = r#"
@@ -45,17 +90,6 @@ pub fn BlogPost(slug: String) -> Element {
                                         window.highlightAll();
                                     } catch (e) {
                                         console.error('高亮代码块失败:', e);
-                                    }
-                                }
-                                
-                                // 重新渲染 Mermaid 图表
-                                if (typeof window.renderAllMermaid === 'function') {
-                                    try {
-                                        window.renderAllMermaid().catch(function(e) {
-                                            console.error('渲染 Mermaid 图表失败:', e);
-                                        });
-                                    } catch (e) {
-                                        console.error('调用 Mermaid 渲染失败:', e);
                                     }
                                 }
                             }
@@ -102,40 +136,34 @@ pub fn BlogPost(slug: String) -> Element {
                 class: "mb-8",
                 h1 {
                     class: "text-4xl font-bold text-gray-900 dark:text-white mb-4",
-                    "文章标题示例"
+                    "{post_title}"
                 }
                 div {
                     class: "flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4",
-                    span { "2025-11-23" }
-                    span { "•" }
-                    span { "作者名称" }
-                    span { "•" }
-                    span { "5 分钟阅读" }
+                    if !post_date.read().is_empty() {
+                        span { "{post_date}" }
+                        span { "•" }
+                    }
+                    span { "Sisyphus" }
                 }
                 div {
                     class: "flex flex-wrap gap-2 mb-4",
-                    for tag in ["Rust", "Dioxus", "Web"] {
+                    for tag in post_tags.read().iter() {
                         span {
                             class: "px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm",
                             "{tag}"
                         }
                     }
                 }
-                // 封面图片占位
-                div {
-                    class: "w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg mb-8",
-                }
             }
             
             // 文章正文内容
             article {
                 class: "prose prose-lg dark:prose-invert max-w-none",
-                // 使用 dangerous_inner_html 渲染 Markdown HTML
+                // 使用 dangerous_inner_html 渲染 signal 中的内容
                 div {
-                    dangerous_inner_html: {
-                        let html = "<h2>文章标题</h2><p>这是文章的正文内容。Markdown 渲染后的 HTML 将显示在这里。</p><h3>代码示例</h3><pre><code class=\"language-rust\">fn main() { println!(\"Hello, Dioxus!\"); }</code></pre><h3>数学公式示例</h3><p>行内公式：$E = mc^2$</p><p>块级公式：</p><p>$$\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}$$</p><h3>Mermaid 图表示例</h3><div class=\"mermaid\">graph TD; A[开始] --> B{判断}; B -->|是| C[执行]; B -->|否| D[跳过]; C --> E[结束]; D --> E</div>";
-                        html
-                    }
+                    id: "article-content",
+                    dangerous_inner_html: "{html_content}",
                 }
             }
             

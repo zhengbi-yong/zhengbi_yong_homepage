@@ -1,6 +1,6 @@
 use crate::content::PostMetadata;
 use anyhow::{Context, Result};
-use pulldown_cmark::{html, Options, Parser};
+use pulldown_cmark::{html, CodeBlockKind, Event, Options, Parser, Tag};
 use std::fs;
 use std::path::Path;
 
@@ -18,8 +18,8 @@ pub struct Post {
 /// 解析 Markdown 文件，分离 Frontmatter 和正文
 pub fn parse_markdown_file(path: &Path) -> Result<Post> {
     // 读取文件内容
-    let content = fs::read_to_string(path)
-        .with_context(|| format!("无法读取文件: {}", path.display()))?;
+    let content =
+        fs::read_to_string(path).with_context(|| format!("无法读取文件: {}", path.display()))?;
 
     // 分离 Frontmatter 和正文
     let (metadata, markdown_content) = parse_frontmatter(&content)
@@ -32,15 +32,28 @@ pub fn parse_markdown_file(path: &Path) -> Result<Post> {
     })
 }
 
+/// 解析 Markdown 内容（字符串），分离 Frontmatter 和正文
+pub fn parse_markdown_content(content: &str) -> Result<Post> {
+    // 分离 Frontmatter 和正文
+    let (metadata, markdown_content) =
+        parse_frontmatter(content).context("解析 Frontmatter 失败")?;
+
+    Ok(Post {
+        metadata,
+        content: markdown_content,
+        html_content: String::new(), // 稍后渲染
+    })
+}
+
 /// 渲染 Markdown 为 HTML
 pub fn render_markdown(markdown: &str) -> String {
     // 启用所有扩展选项
     let options = Options::all();
     let parser = Parser::new_ext(markdown, options);
-    
+
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
-    
+
     html_output
 }
 
@@ -48,22 +61,22 @@ pub fn render_markdown(markdown: &str) -> String {
 pub fn process_markdown_file(path: &Path) -> Result<Post> {
     // 解析文件
     let mut post = parse_markdown_file(path)?;
-    
+
     // 渲染 Markdown 为 HTML
     post.html_content = render_markdown(&post.content);
-    
+
     Ok(post)
 }
 
 /// 解析 Frontmatter（YAML 格式，位于 --- 之间）
 fn parse_frontmatter(content: &str) -> Result<(PostMetadata, String)> {
+    // 去除可能的 BOM
+    let content = content.trim_start_matches('\u{feff}');
+
     // 检查是否以 --- 开头
     if !content.starts_with("---") {
         // 如果没有 Frontmatter，创建默认元数据
-        return Ok((
-            PostMetadata::new(),
-            content.to_string(),
-        ));
+        return Ok((PostMetadata::new(), content.to_string()));
     }
 
     // 查找第二个 ---
@@ -73,10 +86,9 @@ fn parse_frontmatter(content: &str) -> Result<(PostMetadata, String)> {
 
     // 提取 Frontmatter YAML
     let frontmatter_str = &content[3..end_marker + 3];
-    
+
     // 解析 Frontmatter
-    let metadata = PostMetadata::from_yaml(frontmatter_str)
-        .context("Frontmatter YAML 解析失败")?;
+    let metadata = PostMetadata::from_yaml(frontmatter_str).context("Frontmatter YAML 解析失败")?;
 
     // 提取正文（跳过第二个 --- 和换行符）
     let body_start = end_marker + 6;
@@ -125,4 +137,3 @@ tags: ["Rust", "Dioxus"]
         assert!(html.contains("<strong>粗体</strong>"));
     }
 }
-

@@ -65,15 +65,3 @@ pre code.hljs {
     color: #c9d1d9 !important;
 }
 
-/* 确保 Mermaid 图表可见 */
-.mermaid {
-    display: block;
-    text-align: center;
-    margin: 1em 0;
-    min-height: 100px;
-}
-
-.mermaid svg {
-    max-width: 100%;
-    height: auto;
-}

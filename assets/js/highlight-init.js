@@ -14,6 +14,9 @@ function initHighlight() {
     }
 
     // 高亮所有代码块
+    hljs.configure({
+        ignoreUnescapedHTML: true
+    });
     hljs.highlightAll();
 }
 
@@ -31,9 +34,14 @@ function highlightElement(element) {
         return;
     }
 
-    // 查找所有代码块
-    const codeBlocks = element.querySelectorAll('pre code');
+    // 查找所有代码块，但排除 mermaid
+    const codeBlocks = element.querySelectorAll('pre code:not(.language-mermaid):not(.mermaid)');
     codeBlocks.forEach((block) => {
+        // 再次检查父元素是否为 mermaid
+        if (block.parentElement && block.parentElement.classList.contains('mermaid')) {
+            return;
+        }
+
         // 清除之前的高亮标记
         if (block.dataset.highlighted) {
             delete block.dataset.highlighted;
@@ -59,6 +67,10 @@ function highlightAll() {
         return;
     }
     
+    hljs.configure({
+        ignoreUnescapedHTML: true
+    });
+
     // 清除所有已高亮的标记
     const highlightedBlocks = document.querySelectorAll('code[data-highlighted]');
     highlightedBlocks.forEach((block) => {
@@ -66,6 +78,9 @@ function highlightAll() {
     });
     
     // 重新高亮所有代码块
+    // 注意：highlightAll 会处理页面上所有的 pre code，我们需要确保 mermaid 不会被错误处理
+    // 但由于 highlightAll 是全局的，我们无法轻易排除特定元素，除非修改 DOM
+    // 这里我们依赖 highlightElement 更精确的控制，或者让 mermaid 跑在 highlight 之后
     hljs.highlightAll();
 }
 

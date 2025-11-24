@@ -11,7 +11,6 @@ static CSS: Asset = asset!("/assets/main.css");
 static TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 static THEME_JS: Asset = asset!("/assets/js/theme.js");
 static KATEX_INIT_JS: Asset = asset!("/assets/js/katex-init.js");
-static MERMAID_INIT_JS: Asset = asset!("/assets/js/mermaid-init.js");
 static HIGHLIGHT_INIT_JS: Asset = asset!("/assets/js/highlight-init.js");
 
 fn main() {
@@ -31,7 +30,6 @@ fn App() -> Element {
         document::Stylesheet { href: CSS }
         document::Script { src: THEME_JS }
         document::Script { src: KATEX_INIT_JS }
-        document::Script { src: MERMAID_INIT_JS }
         document::Script { src: HIGHLIGHT_INIT_JS }
         Router::<Route> {}
     }

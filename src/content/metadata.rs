@@ -57,24 +57,31 @@ pub struct PostMetadata {
     #[serde(deserialize_with = "deserialize_date")]
     pub date: Option<NaiveDate>,
     /// 作者名称
+    #[serde(default)]
     pub author: Option<String>,
     /// 标签列表
+    #[serde(default)]
     pub tags: Option<Vec<String>>,
     /// 分类列表
+    #[serde(default)]
     pub categories: Option<Vec<String>>,
     /// 文章摘要
+    #[serde(default)]
     pub summary: Option<String>,
     /// 封面图片 URL
+    #[serde(default)]
     pub cover_image: Option<String>,
     /// URL 友好标识符
+    #[serde(default)]
     pub slug: Option<String>,
     /// 是否为草稿
     #[serde(default = "default_false")]
     pub draft: bool,
     /// 最后更新时间
-    #[serde(deserialize_with = "deserialize_datetime")]
+    #[serde(default, deserialize_with = "deserialize_datetime")]
     pub updated: Option<NaiveDateTime>,
     /// 布局模板名称
+    #[serde(default)]
     pub layout: Option<String>,
 }
 

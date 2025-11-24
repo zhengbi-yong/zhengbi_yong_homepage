@@ -19,25 +19,58 @@
       "updated": null,
       "layout": null,
       "file_path": "2025-11-23-welcome-to-dioxus-blog.md"
+    },
+    {
+      "title": "数学公式测试页面",
+      "date": "2025-11-24",
+      "author": null,
+      "tags": [
+        "Math",
+        "Test",
+        "LaTeX"
+      ],
+      "categories": [
+        "Test"
+      ],
+      "summary": null,
+      "cover_image": null,
+      "slug": "math-test",
+      "draft": false,
+      "updated": null,
+      "layout": null,
+      "file_path": "math-test.md"
     }
   ],
   "tags": {
-    "Dioxus": [
-      0
+    "Math": [
+      1
+    ],
+    "LaTeX": [
+      1
     ],
     "Rust": [
       0
     ],
     "博客": [
       0
+    ],
+    "Test": [
+      1
+    ],
+    "Dioxus": [
+      0
     ]
   },
   "categories": {
+    "Test": [
+      1
+    ],
     "技术": [
       0
     ]
   },
   "sorted_by_date": [
+    1,
     0
   ]
 }

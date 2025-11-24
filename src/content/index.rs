@@ -1,4 +1,4 @@
-use crate::content::{Post, process_markdown_file};
+use crate::content::{Post, process_markdown_file, parse_markdown_content, render_markdown, BLOGS_DIR};
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -135,6 +135,89 @@ pub fn scan_blogs_directory(path: &Path) -> Result<PostIndex> {
             Err(e) => {
                 eprintln!("警告：处理文件失败 {}: {}", file_path.display(), e);
                 // 继续处理其他文件
+            }
+        }
+    }
+
+    // 按日期排序（从新到旧）
+    posts_with_dates.sort_by(|a, b| b.1.cmp(&a.1));
+    index.sorted_by_date = posts_with_dates.into_iter().map(|(idx, _)| idx).collect();
+
+    Ok(index)
+}
+
+/// 从嵌入的 blogs 目录加载文章，生成文章索引 (WASM 兼容)
+pub fn load_embedded_blogs() -> Result<PostIndex> {
+    let mut index = PostIndex::new();
+    let mut posts_with_dates: Vec<(usize, chrono::NaiveDate)> = Vec::new();
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        use web_sys::console;
+        console::log_1(&"Loading embedded blogs...".into());
+        console::log_1(&format!("Files found in BLOGS_DIR: {}", BLOGS_DIR.files().count()).into());
+    }
+
+    // 遍历嵌入的 blogs 目录
+    for file in BLOGS_DIR.files() {
+        #[cfg(target_arch = "wasm32")]
+        web_sys::console::log_1(&format!("Found file: {:?}", file.path()).into());
+        
+        let file_path = file.path();
+        
+        // 检查扩展名是否为 md
+        if file_path.extension().and_then(|s| s.to_str()) != Some("md") {
+            continue;
+        }
+
+        if let Some(content_str) = file.contents_utf8() {
+            // 处理 Markdown 内容
+            if let Ok(mut post) = parse_markdown_content(content_str) {
+                // 如果 metadata 中没有 slug，则使用文件名（去掉扩展名）
+                if post.metadata.slug.is_none() {
+                    if let Some(stem) = file_path.file_stem().and_then(|s| s.to_str()) {
+                        post.metadata.slug = Some(stem.to_string());
+                    }
+                }
+
+                 // 渲染 Markdown 为 HTML
+                post.html_content = render_markdown(&post.content);
+
+                // 跳过草稿
+                if post.metadata.is_draft() {
+                    continue;
+                }
+
+                let post_idx = index.posts.len();
+                index.posts.push(post);
+
+                // 获取当前文章的引用（用于构建索引）
+                let current_post = &index.posts[post_idx];
+
+                // 构建标签索引
+                if let Some(ref tags) = current_post.metadata.tags {
+                    for tag in tags {
+                        index.tags.entry(tag.clone()).or_insert_with(Vec::new).push(post_idx);
+                    }
+                }
+
+                // 构建分类索引
+                if let Some(ref categories) = current_post.metadata.categories {
+                    for category in categories {
+                        index.categories.entry(category.clone()).or_insert_with(Vec::new).push(post_idx);
+                    }
+                }
+
+                // 记录日期用于排序
+                let date = current_post.metadata.date.unwrap_or_else(|| {
+                    // 如果没有日期，尝试从文件名提取
+                    extract_date_from_filename(file_path)
+                        .unwrap_or_else(|| chrono::Local::now().date_naive())
+                });
+                posts_with_dates.push((post_idx, date));
+            } else if let Err(e) = parse_markdown_content(content_str) {
+                 #[cfg(target_arch = "wasm32")]
+                 web_sys::console::error_1(&format!("Error parsing file: {:?}. Error: {:?}. Content start: {:.50}", file_path, e, content_str).into());
             }
         }
     }
