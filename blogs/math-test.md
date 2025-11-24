@@ -40,22 +40,22 @@ Derivatives: $f'(x), f''(x), \dot{x}, \ddot{x}, \nabla f$
 Matrix (pmatrix):
 $$
 \begin{pmatrix}
-1 & 2 & 3 \\
-4 & 5 & 6 \\
+1 & 2 & 3 \\\\
+4 & 5 & 6 \\\\
 7 & 8 & 9
 \end{pmatrix}
 $$
 Matrix (bmatrix):
 $$
 \begin{bmatrix}
-a & b \\
+a & b \\\\
 c & d
 \end{bmatrix}
 $$
 Cases:
 $$
 f(x) = \begin{cases}
-x^2 & \text{if } x > 0 \\
+x^2 & \text{if } x > 0 \\\\
 -x & \text{if } x \le 0
 \end{cases}
 $$
@@ -75,9 +75,9 @@ $\text{H}_2\text{O}, \text{SO}_4^{2-}$
 Maxwell's Equations (Differential form):
 $$
 \begin{aligned}
-\nabla \cdot \mathbf{E} &= \frac{\rho}{\varepsilon_0} \\
-\nabla \cdot \mathbf{B} &= 0 \\
-\nabla \times \mathbf{E} &= -\frac{\partial \mathbf{B}}{\partial t} \\
+\nabla \cdot \mathbf{E} &= \frac{\rho}{\varepsilon_0} \\\\
+\nabla \cdot \mathbf{B} &= 0 \\\\
+\nabla \times \mathbf{E} &= -\frac{\partial \mathbf{B}}{\partial t} \\\\
 \nabla \times \mathbf{B} &= \mu_0\mathbf{J} + \mu_0\varepsilon_0\frac{\partial \mathbf{E}}{\partial t}
 \end{aligned}
 $$

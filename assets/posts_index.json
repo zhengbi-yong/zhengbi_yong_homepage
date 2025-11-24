@@ -42,31 +42,31 @@
     }
   ],
   "tags": {
-    "Math": [
-      1
-    ],
     "Rust": [
       0
     ],
-    "Test": [
-      1
+    "博客": [
+      0
     ],
-    "LaTeX": [
+    "Test": [
       1
     ],
     "Dioxus": [
       0
     ],
-    "博客": [
-      0
+    "Math": [
+      1
+    ],
+    "LaTeX": [
+      1
     ]
   },
   "categories": {
-    "Test": [
-      1
-    ],
     "技术": [
       0
+    ],
+    "Test": [
+      1
     ]
   },
   "sorted_by_date": [
