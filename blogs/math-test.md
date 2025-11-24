@@ -59,7 +59,7 @@ x^2 & \text{if } x > 0 \\
 -x & \text{if } x \le 0
 \end{cases}
 $$
-Delimiters: $\left( \frac{1}{2} \right), \left[ \frac{a}{b} \right], \left\{ \sum_{i=1}^n a_i \right\}, \langle \psi | \phi \rangle$
+Delimiters: $\left( \frac{1}{2} \right), \left[ \frac{a}{b} \right], \left\\{ \sum_{i=1}^n a_i \right\\}, \langle \psi | \phi \rangle$
 
 ## 7. Fonts & Accents
 Blackboard: $\mathbb{R}, \mathbb{C}, \mathbb{Z}, \mathbb{N}, \mathbb{Q}$
